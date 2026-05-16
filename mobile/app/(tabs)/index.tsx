@@ -3,6 +3,8 @@ import { StyleSheet, View, Text, TouchableOpacity, TextInput, Modal, Platform, K
 import * as Location from 'expo-location';
 import { triggerSOS, getSafeRoute, reportIncident } from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
 let MapView: any = null;
 let Marker: any = null;
@@ -16,6 +18,12 @@ if (Platform.OS !== 'web') {
 }
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('user_token');
+    router.replace('/login');
+  };
+  
   const [sourceText, setSourceText] = useState('Locating...');
   const [destinationText, setDestinationText] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -71,7 +79,19 @@ export default function HomeScreen() {
     
     searchTimeout.current = setTimeout(async () => {
       try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(text)}&limit=5`, {
+        let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(text)}&limit=10`;
+        
+        if (currentLoc) {
+            // Create a bounding box roughly 50km around the user to prioritize highly local suggestions
+            const box = 0.5;
+            const left = currentLoc.longitude - box;
+            const top = currentLoc.latitude + box;
+            const right = currentLoc.longitude + box;
+            const bottom = currentLoc.latitude - box;
+            url += `&viewbox=${left},${top},${right},${bottom}&bounded=1`;
+        }
+
+        const response = await fetch(url, {
           headers: { 'User-Agent': 'WalkSecureMobileApp/1.0', 'Accept': 'application/json' }
         });
         if (!response.ok) return;
@@ -122,8 +142,9 @@ export default function HomeScreen() {
       } else {
         alert("Could not find a driveable street route.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log("Error calculating safe route.", error);
+      alert(`Error calculating safe route: ${error.message}. Please ensure the backend is running.`);
     }
     setLoadingRoute(false);
   };
@@ -203,7 +224,17 @@ export default function HomeScreen() {
         </MapView>
       ) : (
          <View style={styles.webMapFallback}>
-           <Text style={{color: '#94a3b8'}}>Maps disabled on Web Preview.</Text>
+           {currentLoc ? (
+             <iframe 
+               src={`https://maps.google.com/maps?q=${currentLoc.latitude},${currentLoc.longitude}&z=15&output=embed`}
+               width="100%"
+               height="100%"
+               style={{ border: 0, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
+               allowFullScreen
+             />
+           ) : (
+             <Text style={{color: '#94a3b8'}}>Waiting for location...</Text>
+           )}
          </View>
       )}
 
@@ -215,9 +246,14 @@ export default function HomeScreen() {
                 <Ionicons name="shield-checkmark" size={28} color="#3b82f6" style={{marginRight: 8}}/>
                 <Text style={styles.title}>Walk<Text style={styles.titleSecure}>Secure</Text></Text>
             </View>
-            <TouchableOpacity style={styles.reportBtn} onPress={() => setIncidentModalVisible(true)}>
-              <Text style={styles.reportBtnText}>+ Report</Text>
-            </TouchableOpacity>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <TouchableOpacity style={styles.reportBtn} onPress={() => setIncidentModalVisible(true)}>
+                <Text style={styles.reportBtnText}>+ Report</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.reportBtn, {backgroundColor: '#334155', borderColor: '#475569', marginLeft: 10}]} onPress={handleLogout}>
+                <Text style={styles.reportBtnText}>Logout</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.searchContainer}>
@@ -270,13 +306,25 @@ export default function HomeScreen() {
             <View style={styles.routeResult}>
               <View style={styles.scoreRow}>
                 <Text style={styles.routeText}>AI Safety Score</Text>
-                <View style={[styles.scoreBadge, { backgroundColor: routeData.safety_score > 70 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)' }]}>
-                    <Text style={[styles.scoreVal, { color: routeData.safety_score > 70 ? '#ef4444' : '#10b981' }]}>
+                <View style={[styles.scoreBadge, { backgroundColor: routeData.safety_score < 50 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)' }]}>
+                    <Text style={[styles.scoreVal, { color: routeData.safety_score < 50 ? '#ef4444' : '#10b981' }]}>
                         {routeData.safety_score}/100
                     </Text>
                 </View>
               </View>
               <Text style={styles.routeSubtext}>Optimized to avoid high-risk zones.</Text>
+              
+              {routeData.reasons && routeData.reasons.length > 0 && (
+                <View style={{marginTop: 10, marginBottom: 20}}>
+                   <Text style={{color: '#f8fafc', fontWeight: 'bold', marginBottom: 5}}>Why is this path safe?</Text>
+                   {routeData.reasons.map((reason: string, idx: number) => (
+                      <View key={idx} style={{flexDirection: 'row', alignItems: 'center', marginBottom: 5}}>
+                         <Ionicons name="checkmark-circle" size={16} color="#10b981" style={{marginRight: 8}}/>
+                         <Text style={{color: '#94a3b8', fontSize: 13, flex: 1}}>{reason}</Text>
+                      </View>
+                   ))}
+                </View>
+              )}
               
               {/* BRAND NEW: Start Navigation Button */}
               <TouchableOpacity style={styles.startNavBtn} onPress={startNavigation}>
@@ -299,7 +347,7 @@ export default function HomeScreen() {
             <View style={styles.navStats}>
                 <Text style={styles.navStatText}>{Math.round(routeCoords.length * 2.5)} min</Text>
                 <Text style={styles.navStatTextDivider}>•</Text>
-                <Text style={styles.navStatText}>{routeData?.safety_score < 50 ? 'Safe Route' : 'Caution Advised'}</Text>
+                <Text style={styles.navStatText}>{routeData?.safety_score >= 50 ? 'Safe Route' : 'Caution Advised'}</Text>
             </View>
         </View>
       )}

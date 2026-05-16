@@ -17,9 +17,9 @@ function App() {
 
   return (
     <Router>
-      <div className="flex h-screen bg-[#0b1121] text-white font-sans overflow-hidden">
+      <div className="flex h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden">
         <Sidebar />
-        <div className="flex-1 overflow-y-auto bg-[#0b1121] relative custom-scrollbar">
+        <div className="flex-1 overflow-y-auto bg-slate-50 relative custom-scrollbar">
           <Routes>
             <Route path="/" element={<DashboardOverview />} />
             <Route path="/live" element={<LiveTracking />} />

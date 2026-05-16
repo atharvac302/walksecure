@@ -42,10 +42,10 @@ export default function LiveMap() {
 
   return (
     <MapContainer center={position} zoom={12} style={{ height: '100%', width: '100%', borderRadius: '0.75rem', zIndex: 0 }}>
-      {/* Dark theme map tiles from CartoDB */}
+      {/* Google Maps Tiles */}
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        attribution='&copy; CARTO'
+        url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+        attribution='&copy; Google Maps'
       />
       
       {incidents.map((inc) => {

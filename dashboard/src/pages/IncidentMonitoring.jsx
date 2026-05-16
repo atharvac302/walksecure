@@ -18,44 +18,50 @@ export default function IncidentMonitoring() {
   }, []);
 
   return (
-    <div className="p-8">
-      <h2 className="text-3xl font-bold text-gray-100 mb-6">Incident Management</h2>
+    <div className="p-8 bg-slate-50 min-h-screen text-slate-900">
+      <h2 className="text-3xl font-bold text-slate-900 mb-6">Incident Management</h2>
       
-      <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden shadow-lg">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-gray-900/50 border-b border-gray-700">
-              <th className="p-4 text-gray-400 font-medium">Type</th>
-              <th className="p-4 text-gray-400 font-medium">User</th>
-              <th className="p-4 text-gray-400 font-medium">Location</th>
-              <th className="p-4 text-gray-400 font-medium">Time</th>
-              <th className="p-4 text-gray-400 font-medium">Severity</th>
-              <th className="p-4 text-gray-400 font-medium">Status</th>
-              <th className="p-4 text-gray-400 font-medium text-right">Action</th>
+            <tr className="bg-slate-100/50 border-b border-slate-200">
+              <th className="p-4 text-slate-500 font-medium">Type</th>
+              <th className="p-4 text-slate-500 font-medium">User</th>
+              <th className="p-4 text-slate-500 font-medium">Location</th>
+              <th className="p-4 text-slate-500 font-medium">Time</th>
+              <th className="p-4 text-slate-500 font-medium">Severity</th>
+              <th className="p-4 text-slate-500 font-medium">Status</th>
+              <th className="p-4 text-slate-500 font-medium text-right">Action</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-200">
             {incidents.map((incident) => (
-              <tr key={incident.id} className="border-b border-gray-700/50 hover:bg-gray-700/20 transition-colors">
-                <td className="p-4 text-white font-medium">{incident.type}</td>
-                <td className="p-4 text-gray-300">{incident.user}</td>
-                <td className="p-4 text-gray-300">{incident.location}</td>
-                <td className="p-4 text-gray-400 text-sm">{incident.time}</td>
+              <tr key={incident.id} className="hover:bg-slate-50 transition-colors">
+                <td className="p-4 text-slate-900 font-bold text-sm">{incident.type || incident.incident_type}</td>
+                <td className="p-4 text-slate-600 text-sm">{incident.user || `User #${incident.user_id}`}</td>
+                <td className="p-4 text-slate-600 text-sm">
+                  {incident.location || `${incident.latitude?.toFixed(4)}, ${incident.longitude?.toFixed(4)}`}
+                </td>
+                <td className="p-4 text-slate-500 text-sm">
+                  {incident.time || new Date(incident.timestamp).toLocaleTimeString()}
+                </td>
                 <td className="p-4">
-                  <span className={`px-2 py-1 rounded text-xs font-bold ${incident.severity === 'High' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                    {incident.severity}
+                  <span className={`px-2.5 py-1 rounded-md text-[10px] uppercase font-black tracking-widest ${
+                    (incident.severity || incident.risk_level) === 'High' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
+                  }`}>
+                    {incident.severity || incident.risk_level || 'High'}
                   </span>
                 </td>
                 <td className="p-4">
-                   <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                     incident.status === 'Active' ? 'border-red-500 text-red-400' : 
-                     incident.status === 'Resolved' ? 'border-emerald-500 text-emerald-400' : 'border-blue-500 text-blue-400'
+                   <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                     (incident.status || (incident.is_resolved ? 'Resolved' : 'Active')) === 'Active' ? 'border-rose-200 text-rose-700 bg-rose-50' : 
+                     (incident.status || (incident.is_resolved ? 'Resolved' : 'Active')) === 'Resolved' ? 'border-emerald-200 text-emerald-700 bg-emerald-50' : 'border-blue-200 text-blue-700 bg-blue-50'
                    }`}>
-                    {incident.status}
+                    {incident.status || (incident.is_resolved ? 'Resolved' : 'Active')}
                   </span>
                 </td>
                 <td className="p-4 text-right">
-                  <button className="text-emerald-400 hover:text-emerald-300 text-sm font-medium">Resolve</button>
+                  <button className="text-blue-600 hover:text-blue-800 text-sm font-bold bg-blue-50 px-3 py-1.5 rounded-lg transition-colors shadow-sm">Review</button>
                 </td>
               </tr>
             ))}

@@ -14,7 +14,6 @@ class User(UserBase):
     id: int
     created_at: datetime
     class Config:
-        orm_mode = True
         from_attributes = True
 
 class IncidentCreate(BaseModel):
@@ -29,7 +28,6 @@ class Incident(IncidentCreate):
     timestamp: datetime
     is_resolved: bool
     class Config:
-        orm_mode = True
         from_attributes = True
 
 class LocationUpdate(BaseModel):
@@ -47,3 +45,10 @@ class RouteRequest(BaseModel):
     source_lng: float
     dest_lat: float
     dest_lng: float
+
+class OTPRequest(BaseModel):
+    email: EmailStr
+
+class OTPVerify(BaseModel):
+    email: EmailStr
+    otp: str

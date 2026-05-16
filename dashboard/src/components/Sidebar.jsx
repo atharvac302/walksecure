@@ -32,13 +32,13 @@ const Sidebar = () => {
             className={({ isActive }) =>
               `w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-colors ${
                 isActive
-                  ? 'bg-[#1e293b] text-blue-400 font-medium shadow-[inset_2px_0_0_#3b82f6]'
-                  : 'text-gray-400 hover:bg-[#1e293b]/50 hover:text-gray-200'
+                  ? 'bg-blue-50 text-blue-600 font-medium shadow-[inset_2px_0_0_#3b82f6]'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`
             }
           >
             <div className="flex items-center gap-3">
-              <item.icon size={18} className={item.path === '/' ? 'text-blue-500' : item.path === '/live' ? 'text-pink-500' : item.path === '/sos' ? 'text-pink-500' : item.path === '/heatmap' ? 'text-orange-400' : item.path === '/analytics' ? 'text-purple-400' : ''} />
+              <item.icon size={18} className={item.path === '/' ? 'text-blue-600' : item.path === '/live' ? 'text-pink-600' : item.path === '/sos' ? 'text-pink-600' : item.path === '/heatmap' ? 'text-orange-500' : item.path === '/analytics' ? 'text-purple-600' : 'text-slate-400'} />
               <span className="text-sm">{item.name}</span>
             </div>
             {item.badge && (
@@ -53,14 +53,14 @@ const Sidebar = () => {
   );
 
   return (
-    <div className="w-64 bg-[#080d19] flex flex-col h-full border-r border-[#1e293b] overflow-y-auto custom-scrollbar pt-6 relative z-10 shadow-2xl">
+    <div className="w-64 bg-white flex flex-col h-full border-r border-slate-200 overflow-y-auto custom-scrollbar pt-6 relative z-10 shadow-sm">
       <div className="flex items-center gap-3 mb-8 px-6">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
-          <Shield className="text-blue-400" size={24} />
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+          <Shield className="text-white" size={24} />
         </div>
         <div>
-          <h1 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300 tracking-wide">WalkSecure</h1>
-          <p className="text-[10px] text-indigo-300/70 font-bold uppercase tracking-widest mt-0.5">Command Console</p>
+          <h1 className="text-lg font-black text-slate-900 tracking-wide">WalkSecure</h1>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Command Console</p>
         </div>
       </div>
       
@@ -71,14 +71,14 @@ const Sidebar = () => {
       </nav>
       
       {/* Profile Badge */}
-      <div className="mt-4 p-4 border-t border-[#1e293b] bg-[#0f172a]">
-        <div className="bg-[#1e293b] p-3 rounded-xl flex items-center gap-3 border border-[#334155] cursor-pointer hover:bg-[#334155]/50 transition-colors">
-          <div className="w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 font-bold flex items-center justify-center text-sm border border-blue-500/30">
+      <div className="mt-4 p-4 border-t border-slate-200 bg-slate-50">
+        <div className="bg-white p-3 rounded-xl flex items-center gap-3 border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors shadow-sm">
+          <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center text-sm border border-blue-200">
             AK
           </div>
           <div>
-            <h4 className="text-sm font-bold text-white leading-tight">Arjun Kumar</h4>
-            <p className="text-[10px] text-gray-400 mt-0.5">Super Admin</p>
+            <h4 className="text-sm font-bold text-slate-900 leading-tight">Arjun Kumar</h4>
+            <p className="text-[10px] text-slate-500 mt-0.5">Super Admin</p>
           </div>
         </div>
       </div>

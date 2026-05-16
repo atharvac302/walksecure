@@ -41,3 +41,23 @@ export const reportIncident = async (type: string, riskLevel: string, lat: numbe
   });
   return response.json();
 };
+
+export const requestOTP = async (email: string) => {
+  const response = await fetch(`${BASE_URL}/auth/request-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+  if (!response.ok) throw new Error("Failed to request OTP");
+  return response.json();
+};
+
+export const verifyOTP = async (email: string, otp: string) => {
+  const response = await fetch(`${BASE_URL}/auth/verify-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, otp })
+  });
+  if (!response.ok) throw new Error("Invalid OTP");
+  return response.json();
+};
