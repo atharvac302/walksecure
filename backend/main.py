@@ -63,9 +63,54 @@ signup_store: Dict[str, dict] = {}        # signup OTPs  { email: {name,phone,ot
 # ─── Helpers ─────────────────────────────────────────────────
 
 def send_otp_email(receiver_email: str, otp: str, name: str = "", purpose: str = "Login"):
+    resend_key = os.environ.get("RESEND_API_KEY", "").strip().strip('"')
+    
+    if resend_key:
+        # Use Resend HTTPS API (bypasses Render SMTP port blocking)
+        url = "https://api.resend.com/emails"
+        subject = f"WalkSecure {'Signup' if purpose == 'signup' else 'Login'} OTP — {otp}"
+        body_html = f"""<p>Hi {name or 'there'},</p>
+<p>Your WalkSecure verification code is:</p>
+<h2 style="font-size: 24px; letter-spacing: 2px; color: #3b82f6; font-family: sans-serif;">{otp}</h2>
+<p>This code expires in 10 minutes. Do not share it with anyone.</p>
+<p>– WalkSecure Security Team</p>
+"""
+        payload = {
+            "from": "WalkSecure <onboarding@resend.dev>",
+            "to": [receiver_email],
+            "subject": subject,
+            "html": body_html
+        }
+        try:
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={
+                    "Authorization": f"Bearer {resend_key}",
+                    "Content-Type": "application/json",
+                    "User-Agent": "WalkSecure/1.0"
+                },
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=5) as response:
+                res_data = json.loads(response.read().decode("utf-8"))
+            safe_print(f"[Resend EMAIL] OTP {otp} sent successfully to {receiver_email}. ID: {res_data.get('id')}")
+            return
+        except Exception as e:
+            error_details = ""
+            if hasattr(e, 'read'):
+                try:
+                    error_details = e.read().decode('utf-8')
+                    safe_print(f"[Resend EMAIL ERROR] {type(e).__name__}: {e} — Details: {error_details}")
+                except:
+                    safe_print(f"[Resend EMAIL ERROR] {type(e).__name__}: {e}")
+            else:
+                safe_print(f"[Resend EMAIL ERROR] {type(e).__name__}: {e}")
+            safe_print("Resend HTTPS API failed. Falling back to SMTP...")
+
+    # Standard SMTP Fallback
     sender_email    = os.environ.get("SMTP_EMAIL", "").strip().strip('"')
     sender_password = os.environ.get("SMTP_PASSWORD", "").strip().strip('"').replace(" ", "")
-    # Google App Passwords: strip all spaces (e.g. "elda zrun oenv elyxr" → "eldazrunoenveldyxr")
 
     if not sender_email or not sender_password or sender_email == "your_email@gmail.com":
         safe_print(f"[EMAIL FALLBACK] OTP for {receiver_email}: {otp}")
@@ -928,7 +973,41 @@ def places_details(place_id: str):
 
 @app.get("/test-email")
 def test_email(receiver: str):
-    """Synchronous test endpoint to diagnose SMTP issues directly in the browser."""
+    """Synchronous test endpoint to diagnose SMTP/Resend issues directly in the browser."""
+    resend_key = os.environ.get("RESEND_API_KEY", "").strip().strip('"')
+    
+    if resend_key:
+        url = "https://api.resend.com/emails"
+        payload = {
+            "from": "WalkSecure <onboarding@resend.dev>",
+            "to": [receiver],
+            "subject": "WalkSecure Live Resend Test",
+            "html": f"<p>This is a live test email from your WalkSecure server deployed on Render using <strong>Resend HTTPS API</strong>.</p><p>Timestamp: {datetime.now(IST)}</p>"
+        }
+        try:
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={
+                    "Authorization": f"Bearer {resend_key}",
+                    "Content-Type": "application/json",
+                    "User-Agent": "WalkSecure/1.0"
+                },
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=5) as response:
+                res_data = json.loads(response.read().decode("utf-8"))
+            return {"status": "success", "provider": "Resend (HTTPS)", "id": res_data.get("id"), "message": f"Email successfully sent to {receiver} using Resend API."}
+        except Exception as e:
+            error_details = ""
+            if hasattr(e, 'read'):
+                try:
+                    error_details = e.read().decode('utf-8')
+                except:
+                    pass
+            return {"status": "error", "provider": "Resend (HTTPS)", "error_type": type(e).__name__, "details": str(e), "api_error": error_details}
+
+    # Standard SMTP Fallback
     sender_email    = os.environ.get("SMTP_EMAIL", "").strip().strip('"')
     sender_password = os.environ.get("SMTP_PASSWORD", "").strip().strip('"').replace(" ", "")
     
@@ -949,8 +1028,8 @@ def test_email(receiver: str):
             server.ehlo()
             server.login(sender_email, sender_password)
             server.send_message(msg)
-        return {"status": "success", "message": f"Email successfully sent to {receiver} from {sender_email}"}
+        return {"status": "success", "provider": "Gmail SMTP", "message": f"Email successfully sent to {receiver} from {sender_email}"}
     except Exception as e:
-        return {"status": "error", "error_type": type(e).__name__, "details": str(e)}
+        return {"status": "error", "provider": "Gmail SMTP", "error_type": type(e).__name__, "details": str(e)}
 
 
