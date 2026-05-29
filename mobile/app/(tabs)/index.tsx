@@ -63,34 +63,65 @@ export default function HomeScreen() {
 
   // Get GPS + start live tracking ping
   useEffect(() => {
+    let active = true;
     (async () => {
       // Load user id from storage
       try {
         const stored = await AsyncStorage.getItem('user_token');
-        if (stored) { const parsed = JSON.parse(stored); userId.current = parsed.id; }
-      } catch {}
-
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setCurrentLoc({ latitude: 19.0760, longitude: 72.8777 }); // Mumbai fallback
-        return;
+        if (stored && active) { 
+          const parsed = JSON.parse(stored); 
+          userId.current = parsed.id; 
+        }
+      } catch (err) {
+        console.log('AsyncStorage error:', err);
       }
 
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
-      setCurrentLoc({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
-
-      // Watch position for navigation + live tracking dashboard
-      locationWatcher.current = await Location.watchPositionAsync(
-        { accuracy: Location.Accuracy.Balanced, distanceInterval: 20, timeInterval: 10000 },
-        (newLoc) => {
-          const { latitude, longitude } = newLoc.coords;
-          setCurrentLoc({ latitude, longitude });
-          // Ping dashboard live map
-          if (userId.current) updateLocation(userId.current, latitude, longitude);
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          if (active) setCurrentLoc({ latitude: 19.0760, longitude: 72.8777 }); // Mumbai fallback
+          return;
         }
-      );
+
+        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        if (loc && loc.coords && active) {
+          setCurrentLoc({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+        }
+      } catch (e) {
+        console.log("Error getting initial location:", e);
+        if (active) setCurrentLoc({ latitude: 19.0760, longitude: 72.8777 }); // Mumbai fallback
+      }
+
+      try {
+        // Watch position for navigation + live tracking dashboard
+        const watcher = await Location.watchPositionAsync(
+          { accuracy: Location.Accuracy.Balanced, distanceInterval: 20, timeInterval: 10000 },
+          (newLoc) => {
+            try {
+              if (newLoc && newLoc.coords && active) {
+                const { latitude, longitude } = newLoc.coords;
+                setCurrentLoc({ latitude, longitude });
+                // Ping dashboard live map
+                if (userId.current) updateLocation(userId.current, latitude, longitude);
+              }
+            } catch (err) {
+              console.log("Error in location watch callback:", err);
+            }
+          }
+        );
+        locationWatcher.current = watcher;
+      } catch (e) {
+        console.log("Error watching position:", e);
+      }
     })();
-    return () => { locationWatcher.current?.remove?.(); };
+    return () => { 
+      active = false;
+      try {
+        locationWatcher.current?.remove?.(); 
+      } catch (err) {
+        console.log('Cleanup error:', err);
+      }
+    };
   }, []);
 
   // Search with Google Places API proxied through backend (with automatic Photon fallback if key is missing)
