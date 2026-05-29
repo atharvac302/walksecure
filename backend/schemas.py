@@ -21,6 +21,8 @@ class IncidentCreate(BaseModel):
     longitude: float
     incident_type: str
     risk_level: str
+    description: Optional[str] = None
+    user_id: Optional[int] = None
 
 class Incident(IncidentCreate):
     id: int
@@ -52,3 +54,62 @@ class OTPRequest(BaseModel):
 class OTPVerify(BaseModel):
     email: EmailStr
     otp: str
+
+class EmergencyContactCreate(BaseModel):
+    contact_name: str
+    contact_phone: str
+
+class UserUpdate(BaseModel):
+    name: str
+    phone: str
+
+class SignupRequest(BaseModel):
+    name: str
+    email: EmailStr
+    phone: str
+
+class SignupVerify(BaseModel):
+    email: EmailStr
+    phone: str
+    otp: str
+
+class GoogleAuthRequest(BaseModel):
+    name: str
+    email: EmailStr
+    phone: Optional[str] = None
+
+# ─── Dashboard Admin Schemas ──────────────────────────────────
+class DashboardUserCreate(BaseModel):
+    name: str
+    email: EmailStr
+    phone: str
+    password: str
+    role: str  # super_admin | region_supervisor | area_head | police | hospital
+    region: Optional[str] = None
+    department: Optional[str] = None
+
+class DashboardUserUpdate(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    role: Optional[str] = None
+    region: Optional[str] = None
+    department: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class DashboardUserOut(BaseModel):
+    id: int
+    name: str
+    email: str
+    phone: str
+    role: str
+    region: Optional[str]
+    department: Optional[str]
+    is_active: bool
+    created_at: datetime
+    created_by: Optional[int]
+    class Config:
+        from_attributes = True
+
+class AdminLoginRequest(BaseModel):
+    email: EmailStr
+    password: str

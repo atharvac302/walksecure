@@ -34,6 +34,7 @@ class Incident(Base):
     risk_level = Column(String) # HIGH, MODERATE, LOW
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
     is_resolved = Column(Boolean, default=False)
+    description = Column(String, nullable=True)
     
     user = relationship("User", back_populates="incidents")
 
@@ -52,3 +53,19 @@ class LiveTracking(Base):
     latitude = Column(Float)
     longitude = Column(Float)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
+
+class DashboardUser(Base):
+    __tablename__ = "dashboard_users"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    phone = Column(String, nullable=False)
+    password_hash = Column(String, nullable=False)
+    role = Column(String, nullable=False, default="region_supervisor")
+    # Roles: super_admin | region_supervisor | area_head | police | hospital
+    region = Column(String, nullable=True)
+    department = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_by = Column(Integer, ForeignKey("dashboard_users.id"), nullable=True)
+

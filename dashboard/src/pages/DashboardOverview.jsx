@@ -17,7 +17,7 @@ export default function DashboardOverview() {
     // Fetch live incidents
     apiClient.get('/incidents')
       .then(res => {
-         const alerts = res.data.filter(i => i.incident_type === 'SOS Alert');
+         const alerts = res.data.filter(i => i.incident_type === 'SOS Alert' && !i.is_resolved);
          setSosAlerts(alerts.reverse()); 
       })
       .catch(err => console.error(err));
@@ -57,9 +57,14 @@ export default function DashboardOverview() {
 
   const handleSOSAction = (action) => {
     if (action === 'police') {
-        alert("Local authorities have been dispatched to " + selectedSos.latitude.toFixed(4) + ", " + selectedSos.longitude.toFixed(4));
+        alert("🚓 Local authorities dispatched to coordinates: " + selectedSos.latitude.toFixed(4) + ", " + selectedSos.longitude.toFixed(4));
     } else if (action === 'call') {
-        alert("Initiating secure line to user...");
+        if (selectedSos.user_phone && selectedSos.user_phone !== '0000000000') {
+            // Opens the system phone dialer with the user's actual phone number
+            window.open(`tel:${selectedSos.user_phone}`, '_self');
+        } else {
+            alert('No phone number registered for this user. Contact via email: ' + (selectedSos.user_email || 'unknown'));
+        }
     }
   };
 
@@ -265,19 +270,36 @@ export default function DashboardOverview() {
                  </div>
               </div>
 
-              <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-200 text-sm">
-                 <p className="text-slate-700 mb-2"><span className="text-slate-500 font-bold w-20 inline-block">Location:</span> {selectedSos.latitude.toFixed(4)}, {selectedSos.longitude.toFixed(4)}</p>
-                 <p className="text-slate-700 mb-2"><span className="text-slate-500 font-bold w-20 inline-block">Time:</span> {new Date(selectedSos.timestamp).toLocaleTimeString()}</p>
-                 <p className="text-slate-700"><span className="text-slate-500 font-bold w-20 inline-block">Status:</span> <span className="text-rose-600 font-bold">Awaiting Action</span></p>
+              <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-200 text-sm space-y-2">
+                 {selectedSos.user_name && (
+                    <p className="text-slate-700"><span className="text-slate-400 font-bold inline-block w-20">User:</span> <span className="font-semibold text-slate-900">{selectedSos.user_name}</span></p>
+                 )}
+                 {selectedSos.user_email && (
+                    <p className="text-slate-700"><span className="text-slate-400 font-bold inline-block w-20">Email:</span> {selectedSos.user_email}</p>
+                 )}
+                 {selectedSos.user_phone && selectedSos.user_phone !== '0000000000' && (
+                    <p className="text-slate-700"><span className="text-slate-400 font-bold inline-block w-20">Phone:</span> <span className="text-blue-600 font-bold">{selectedSos.user_phone}</span></p>
+                 )}
+                 <p className="text-slate-700"><span className="text-slate-400 font-bold inline-block w-20">Location:</span> {selectedSos.latitude.toFixed(4)}, {selectedSos.longitude.toFixed(4)}</p>
+                 <p className="text-slate-700"><span className="text-slate-400 font-bold inline-block w-20">Time:</span> {new Date(selectedSos.timestamp).toLocaleTimeString()}</p>
+                 <p className="text-slate-700"><span className="text-slate-400 font-bold inline-block w-20">Status:</span> <span className="text-rose-600 font-bold">Awaiting Action</span></p>
               </div>
 
               <div className="space-y-3">
                  <button onClick={() => handleSOSAction('police')} className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm">
                     <ShieldAlert size={18} /> Dispatch Local Authorities
                  </button>
-                 <button onClick={() => handleSOSAction('call')} className="w-full bg-white hover:bg-slate-50 text-slate-700 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border border-slate-300 shadow-sm">
-                    <PhoneCall size={18} /> Call User Device
+                 <button onClick={() => handleSOSAction('call')} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm">
+                    <PhoneCall size={18} /> Call User {selectedSos.user_phone && selectedSos.user_phone !== '0000000000' ? `(${selectedSos.user_phone})` : ''}
                  </button>
+                 <a 
+                    href={`https://www.google.com/maps?q=${selectedSos.latitude},${selectedSos.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-white hover:bg-slate-50 text-slate-700 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border border-slate-300 shadow-sm"
+                 >
+                    <MapPin size={18} /> Open Location in Google Maps
+                 </a>
                  <button onClick={() => handleResolveSos(selectedSos.id)} className="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border border-emerald-200 mt-4 shadow-sm">
                     <CheckCircle size={18} /> Mark as Resolved (False Alarm)
                  </button>

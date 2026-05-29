@@ -1,20 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+
+* {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
 @layer utilities {
   .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: #0f172a; 
+    background: #f8fafc;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #334155; 
-    border-radius: 4px;
+    background: #cbd5e1;
+    border-radius: 3px;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #475569; 
+    background: #94a3b8;
   }
+}
+
+@keyframes sosPulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(239,68,68,0.3); }
+  50%       { box-shadow: 0 0 0 10px rgba(239,68,68,0.05); }
+}
+
+/* Leaflet map z-index fix */
+.leaflet-container {
+  z-index: 0;
+}
+.leaflet-pane {
+  z-index: 1;
+}
+.leaflet-top, .leaflet-bottom {
+  z-index: 10;
 }
