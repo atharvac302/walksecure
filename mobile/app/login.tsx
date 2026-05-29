@@ -609,7 +609,11 @@ export default function LoginScreen() {
     setLoading(true); setErrorMsg('');
     try {
       const res = await requestOTP(loginEmail.trim().toLowerCase());
-      setOtpSentTo(res.message || 'OTP sent to your email and registered phone.');
+      let sentMsg = res.message || 'OTP sent to your email and registered phone.';
+      if (res.debug_otp) {
+        sentMsg += ` [DEBUG BYPASS CODE: ${res.debug_otp}]`;
+      }
+      setOtpSentTo(sentMsg);
       navigateTo('login_otp');
     } catch (e: any) {
       setErrorMsg(e.message || 'Failed to send OTP.'); triggerShake();
@@ -646,7 +650,11 @@ export default function LoginScreen() {
     setLoading(true); setErrorMsg('');
     try {
       const res = await signupRequest(signupName.trim(), emailTrimmed, formattedPhone);
-      setOtpSentTo(res.message);
+      let sentMsg = res.message || 'Verification OTP sent.';
+      if (res.debug_otp) {
+        sentMsg += ` [DEBUG BYPASS CODE: ${res.debug_otp}]`;
+      }
+      setOtpSentTo(sentMsg);
       navigateTo('signup_otp');
     } catch (e: any) {
       setErrorMsg(e.message || 'Signup request failed.'); triggerShake();

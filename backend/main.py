@@ -200,7 +200,11 @@ def signup_request(req: schemas.SignupRequest, background_tasks: BackgroundTasks
     background_tasks.add_task(send_otp_sms, clean_phone, otp, req.name)
 
     phone_hint = f"{clean_phone[:5]}***{clean_phone[-3:]}"
-    return {"message": f"OTP sent to {req.email} and {phone_hint}. Enter it to complete signup."}
+    debug_mode = os.environ.get("DEBUG_OTP", "true").lower() == "true"
+    response_data = {"message": f"OTP sent to {req.email} and {phone_hint}. Enter it to complete signup."}
+    if debug_mode:
+        response_data["debug_otp"] = otp
+    return response_data
 
 
 @app.post("/auth/signup-verify")
@@ -245,7 +249,11 @@ def request_otp(req: schemas.OTPRequest, background_tasks: BackgroundTasks, db: 
         background_tasks.add_task(send_otp_sms, user.phone, otp, user.name)
 
     phone_hint = f"{user.phone[:4]}***{user.phone[-3:]}" if user.phone and user.phone != "0000000000" else "your registered phone"
-    return {"message": f"OTP sent to your email and {phone_hint}."}
+    debug_mode = os.environ.get("DEBUG_OTP", "true").lower() == "true"
+    response_data = {"message": f"OTP sent to your email and {phone_hint}."}
+    if debug_mode:
+        response_data["debug_otp"] = otp
+    return response_data
 
 
 @app.post("/auth/verify-otp")
