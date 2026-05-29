@@ -407,47 +407,109 @@ interface GooglePickerModalProps {
   visible: boolean;
   onClose: () => void;
   onSelectAccount: (acc: typeof MOCK_GOOGLE_ACCOUNTS[0]) => void;
-  onUseAnother: () => void;
 }
 
-const GooglePickerModal = React.memo(({ visible, onClose, onSelectAccount, onUseAnother }: GooglePickerModalProps) => (
-  <Modal visible={visible} transparent animationType="slide">
-    <TouchableOpacity style={styles.pickerBackdrop} activeOpacity={1} onPress={onClose} />
-    <View style={styles.pickerSheet}>
-      <View style={styles.pickerHandle} />
-      <View style={styles.pickerHeader}>
-        <Text style={styles.googleLetters}>
-          <Text style={{ color: '#4285F4' }}>G</Text>
-          <Text style={{ color: '#EA4335' }}>o</Text>
-          <Text style={{ color: '#FBBC05' }}>o</Text>
-          <Text style={{ color: '#4285F4' }}>g</Text>
-          <Text style={{ color: '#34A853' }}>l</Text>
-          <Text style={{ color: '#EA4335' }}>e</Text>
-        </Text>
-        <Text style={styles.pickerTitle}> — Choose an account</Text>
+const GooglePickerModal = React.memo(({ visible, onClose, onSelectAccount }: GooglePickerModalProps) => {
+  const [customMode, setCustomMode] = useState(false);
+  const [customName, setCustomName] = useState('');
+  const [customEmail, setCustomEmail] = useState('');
+
+  const handleClose = () => {
+    setCustomMode(false);
+    setCustomName('');
+    setCustomEmail('');
+    onClose();
+  };
+
+  const handleCustomSubmit = () => {
+    if (!customName.trim() || !customEmail.trim() || !customEmail.includes('@')) {
+      alert('Please enter a valid name and email address.');
+      return;
+    }
+    onSelectAccount({
+      name: customName.trim(),
+      email: customEmail.trim().toLowerCase(),
+      phone: '+919000000000',
+      color: '#4285F4'
+    });
+    setCustomMode(false);
+    setCustomName('');
+    setCustomEmail('');
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="slide">
+      <TouchableOpacity style={styles.pickerBackdrop} activeOpacity={1} onPress={handleClose} />
+      <View style={styles.pickerSheet}>
+        <View style={styles.pickerHandle} />
+        <View style={styles.pickerHeader}>
+          <Text style={styles.googleLetters}>
+            <Text style={{ color: '#4285F4' }}>G</Text>
+            <Text style={{ color: '#EA4335' }}>o</Text>
+            <Text style={{ color: '#FBBC05' }}>o</Text>
+            <Text style={{ color: '#4285F4' }}>g</Text>
+            <Text style={{ color: '#34A853' }}>l</Text>
+            <Text style={{ color: '#EA4335' }}>e</Text>
+          </Text>
+          <Text style={styles.pickerTitle}> — {customMode ? 'Add Account' : 'Choose an account'}</Text>
+        </View>
+        <Text style={styles.pickerSub}>{customMode ? 'Sign in using any name and email address' : 'to continue to WalkSecure'}</Text>
+
+        {customMode ? (
+          <View style={styles.customPickerForm}>
+            <TextInput
+              style={styles.pickerInput}
+              placeholder="Your Full Name"
+              placeholderTextColor="#94a3b8"
+              value={customName}
+              onChangeText={setCustomName}
+              autoCapitalize="words"
+              autoCorrect={false}
+            />
+            <TextInput
+              style={styles.pickerInput}
+              placeholder="Your Email Address"
+              placeholderTextColor="#94a3b8"
+              value={customEmail}
+              onChangeText={setCustomEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <View style={styles.pickerActionRow}>
+              <TouchableOpacity style={[styles.pickerBtn, styles.pickerBtnCancel]} onPress={() => setCustomMode(false)} activeOpacity={0.8}>
+                <Text style={styles.pickerBtnCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.pickerBtn, styles.pickerBtnSubmit]} onPress={handleCustomSubmit} activeOpacity={0.85}>
+                <Text style={styles.pickerBtnSubmitText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <>
+            {MOCK_GOOGLE_ACCOUNTS.map(acc => (
+              <TouchableOpacity key={acc.email} style={styles.pickerItem} onPress={() => onSelectAccount(acc)} activeOpacity={0.7}>
+                <View style={[styles.pickerAvatar, { backgroundColor: acc.color }]}>
+                  <Text style={styles.pickerAvatarText}>{acc.name.charAt(0)}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.pickerName}>{acc.name}</Text>
+                  <Text style={styles.pickerEmail}>{acc.email}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#cbd5e1" />
+              </TouchableOpacity>
+            ))}
+
+            <TouchableOpacity style={styles.pickerAddBtn} onPress={() => setCustomMode(true)} activeOpacity={0.8}>
+              <Ionicons name="add-circle-outline" size={20} color="#3b82f6" />
+              <Text style={styles.pickerAddText}>Use another account</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
-      <Text style={styles.pickerSub}>to continue to WalkSecure</Text>
-
-      {MOCK_GOOGLE_ACCOUNTS.map(acc => (
-        <TouchableOpacity key={acc.email} style={styles.pickerItem} onPress={() => onSelectAccount(acc)} activeOpacity={0.7}>
-          <View style={[styles.pickerAvatar, { backgroundColor: acc.color }]}>
-            <Text style={styles.pickerAvatarText}>{acc.name.charAt(0)}</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.pickerName}>{acc.name}</Text>
-            <Text style={styles.pickerEmail}>{acc.email}</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color="#cbd5e1" />
-        </TouchableOpacity>
-      ))}
-
-      <TouchableOpacity style={styles.pickerAddBtn} onPress={onUseAnother}>
-        <Ionicons name="add-circle-outline" size={20} color="#3b82f6" />
-        <Text style={styles.pickerAddText}>Use another account</Text>
-      </TouchableOpacity>
-    </View>
-  </Modal>
-));
+    </Modal>
+  );
+});
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────
 export default function LoginScreen() {
@@ -743,7 +805,6 @@ export default function LoginScreen() {
         visible={showGooglePicker}
         onClose={closeGooglePicker}
         onSelectAccount={handleGoogleSignIn}
-        onUseAnother={handleGoogleUseAnother}
       />
     </KeyboardAvoidingView>
   );
@@ -868,4 +929,15 @@ const styles = StyleSheet.create({
   pickerEmail: { fontSize: 13, color: '#64748b', marginTop: 2 },
   pickerAddBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16 },
   pickerAddText: { color: '#3b82f6', fontSize: 14, fontWeight: '600', marginLeft: 10 },
+  customPickerForm: { marginVertical: 10, gap: 12 },
+  pickerInput: {
+    backgroundColor: 'rgba(30,41,59,0.9)', borderRadius: 12, borderWidth: 1.5, borderColor: '#334155',
+    color: '#f8fafc', fontSize: 14, height: 48, paddingHorizontal: 14,
+  },
+  pickerActionRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 8 },
+  pickerBtn: { flex: 1, height: 46, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  pickerBtnCancel: { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' },
+  pickerBtnCancelText: { color: '#94a3b8', fontSize: 14, fontWeight: '600' },
+  pickerBtnSubmit: { backgroundColor: '#3b82f6' },
+  pickerBtnSubmitText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 });
