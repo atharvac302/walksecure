@@ -8,3 +8,5 @@ scikit-learn
 xgboost
 pandas
 twilio
+psycopg2-binary
+
