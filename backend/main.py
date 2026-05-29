@@ -925,3 +925,32 @@ def places_details(place_id: str):
         safe_print(f"[Google Details Error]: {e}")
         return {"lat": None, "lng": None}
 
+
+@app.get("/test-email")
+def test_email(receiver: str):
+    """Synchronous test endpoint to diagnose SMTP issues directly in the browser."""
+    sender_email    = os.environ.get("SMTP_EMAIL", "").strip().strip('"')
+    sender_password = os.environ.get("SMTP_PASSWORD", "").strip().strip('"').replace(" ", "")
+    
+    if not sender_email or not sender_password:
+        return {"status": "error", "message": "SMTP_EMAIL or SMTP_PASSWORD environment variables are missing."}
+        
+    subject = "WalkSecure Live SMTP Test"
+    body = f"This is a live test email from your WalkSecure server deployed on Render. Timestamp: {datetime.now(IST)}"
+    
+    try:
+        msg = MIMEText(body, 'plain', 'utf-8')
+        msg['Subject'] = subject
+        msg['From']    = f"WalkSecure <{sender_email}>"
+        msg['To']      = receiver
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            server.login(sender_email, sender_password)
+            server.send_message(msg)
+        return {"status": "success", "message": f"Email successfully sent to {receiver} from {sender_email}"}
+    except Exception as e:
+        return {"status": "error", "error_type": type(e).__name__, "details": str(e)}
+
+
