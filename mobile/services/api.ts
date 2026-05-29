@@ -1,9 +1,11 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
-let BASE_URL = 'http://localhost:8000';
-const debuggerHost = Constants.expoConfig?.hostUri;
+// Live deployed backend URL on Render
+let BASE_URL = 'https://walksecure.onrender.com';
 
+/*
+const debuggerHost = Constants.expoConfig?.hostUri;
 if (debuggerHost) {
   // If running in Expo Go on a physical device, extract the computer's local Wi-Fi IP address!
   const ip = debuggerHost.split(':')[0];
@@ -12,8 +14,9 @@ if (debuggerHost) {
   // Fallback for Android Emulator
   BASE_URL = 'http://10.0.2.2:8000';
 }
+*/
 
-console.log("WalkSecure Backend URL dynamically set to:", BASE_URL);
+console.log("WalkSecure Backend URL set to live production:", BASE_URL);
 
 export const triggerSOS = async (lat: number, lng: number, userId: number = 0) => {
   const response = await fetch(`${BASE_URL}/trigger-sos`, {
