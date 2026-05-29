@@ -10,6 +10,10 @@ load_dotenv()
 # by changing the SQLALCHEMY_DATABASE_URL in .env
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./walksecure.db")
 
+# SQLAlchemy 1.4+ requires "postgresql://" instead of "postgres://"
+if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, 
     # check_same_thread is only needed for SQLite
