@@ -160,21 +160,19 @@ graph TD
 Here are some interface previews showing the components in action:
 
 ### 📱 Mobile App Overview
-| App Search & Routes | Live Safety Insights | Dedicated Incident Reporting |
+| User Profile Screen | Active SOS Alert Popup | Explore Home Map |
 | :---: | :---: | :---: |
-| ![Search UI](./screenshots/media__1778092375798.png) | ![Insights Board](./screenshots/media__1778091069536.png) | ![Incident Report Form](./screenshots/media__1779992391100.png) |
+| ![User Profile](./screenshots/mobile_profile.jpg) | ![SOS Alert Popup](./screenshots/mobile_sos_alert.jpg) | ![Explore Home Map](./screenshots/mobile_home_map.jpg) |
 
 ---
 
 ### 💻 Web Admin Dashboard
-#### 🗺️ Real-time Tracking & Active SOS Monitoring
-![Live Tracking Map](./screenshots/media__1779863790521.png)
+#### 📊 AI Analytics Console
+![AI Analytics](./screenshots/dashboard_analytics.png)
 
-#### 📊 AI Analytics Dashboard
-![AI Analytics](./screenshots/media__1779993288423.png)
+#### 👥 Staff Management & Registration
+![Staff Management](./screenshots/dashboard_add_staff.png)
 
-#### 📋 Incident Incident Log
-![Incident Management](./screenshots/media__1779853386003.png)
 
 ---
 
